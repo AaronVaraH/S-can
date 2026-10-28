@@ -1,14 +1,11 @@
 import React from 'react'
 import {
-  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Volume2,
   VolumeX,
   Sliders,
-  Radio,
-  Wifi,
-  WifiOff,
-  Clock,
-  Sparkles
+  Radio
 } from 'lucide-react'
 
 export default function Navbar({
@@ -39,59 +36,48 @@ export default function Navbar({
 
   return (
     <header className="h-14 px-4 bg-slate-900/50 backdrop-blur-xl border-b border-white/[0.08] flex items-center justify-between gap-3 shrink-0 z-20 shadow-sm">
-      {/* Left: Sidebar trigger and View Title */}
-      <div className="flex items-center space-x-3">
-        {!isSidebarOpen && (
-          <button
-            onClick={onToggleSidebar}
-            title="Abrir panel lateral"
-            aria-label="Abrir panel lateral"
-            className="w-9 h-9 rounded-xl border border-white/10 bg-slate-800/60 hover:bg-slate-700/60 text-slate-200 hover:text-white flex items-center justify-center transition-all shadow-sm active:scale-95"
-          >
-            <Menu className="w-4 h-4" />
-          </button>
-        )}
-
-        <div className="flex items-center space-x-2.5">
-          {!isSidebarOpen && (
-            <div className="flex items-center gap-2 mr-1">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center font-mono font-bold text-xs text-cyan-300">
-                S
-              </div>
-              <span className="font-semibold text-white text-sm tracking-tight font-sans">
-                S-can
-              </span>
-            </div>
+      {/* Left: Sidebar trigger and View Title (No logo or duplicate title) */}
+      <div className="flex items-center space-x-3 min-w-0">
+        <button
+          onClick={onToggleSidebar}
+          title={isSidebarOpen ? 'Colapsar panel lateral' : 'Expandir panel lateral'}
+          aria-label={isSidebarOpen ? 'Colapsar panel lateral' : 'Expandir panel lateral'}
+          className="w-8 h-8 rounded-lg border border-white/10 bg-slate-800/60 hover:bg-slate-700/60 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0"
+        >
+          {isSidebarOpen ? (
+            <PanelLeftClose className="w-4 h-4 text-slate-300" />
+          ) : (
+            <PanelLeftOpen className="w-4 h-4 text-cyan-400" />
           )}
+        </button>
 
-          <h1 className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <span>{getTabLabel()}</span>
-          </h1>
+        <h1 className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-300 truncate">
+          {getTabLabel()}
+        </h1>
 
-          {/* Connection Status Pill with Real Ping */}
-          <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border glass-pill">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                connectionStatus === 'connected'
-                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]'
-                  : connectionStatus === 'reconnecting'
-                  ? 'bg-amber-400 animate-pulse'
-                  : 'bg-rose-400'
-              }`}
-            />
-            <span className="text-slate-300 font-medium">
-              {connectionStatus === 'connected'
-                ? 'Raspberry Pi En Línea'
+        {/* Connection Status Pill with Real Ping */}
+        <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border glass-pill shrink-0">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              connectionStatus === 'connected'
+                ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]'
                 : connectionStatus === 'reconnecting'
-                ? 'Reconectando...'
-                : 'Sin Conexión'}
+                ? 'bg-amber-400 animate-pulse'
+                : 'bg-rose-400'
+            }`}
+          />
+          <span className="text-slate-300 font-medium">
+            {connectionStatus === 'connected'
+              ? 'Raspberry Pi En Línea'
+              : connectionStatus === 'reconnecting'
+              ? 'Reconectando...'
+              : 'Sin Conexión'}
+          </span>
+          {connectionStatus === 'connected' && pingMs !== null && (
+            <span className="text-slate-400 border-l border-white/10 pl-1.5 ml-1">
+              {pingMs} ms
             </span>
-            {connectionStatus === 'connected' && pingMs !== null && (
-              <span className="text-slate-400 border-l border-white/10 pl-1.5 ml-1">
-                {pingMs} ms
-              </span>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
