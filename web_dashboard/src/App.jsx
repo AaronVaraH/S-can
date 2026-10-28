@@ -12,93 +12,36 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState('camara') // 'camara' | 'history' | 'audit'
 
-  // Connection and Mode State
+  // Connection State
   const [backendUrl, setBackendUrl] = useState(() => {
     return localStorage.getItem('scan_backend_url') || 'http://localhost:8000'
   })
-  const [isSimulator, setIsSimulator] = useState(true) // Silent simulator default for realistic preview
-  const [connectionStatus, setConnectionStatus] = useState('disconnected')
-  const [pingMs, setPingMs] = useState(18)
+  const [connectionStatus, setConnectionStatus] = useState('disconnected') // 'connected' | 'reconnecting' | 'disconnected'
+  const [pingMs, setPingMs] = useState(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.75)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isTestingConnection, setIsTestingConnection] = useState(false)
+  const [isTriggering, setIsTriggering] = useState(false)
 
-  // Real-time Detection & Telemetry State
-  const [lastPrediction, setLastPrediction] = useState({
-    id: 28,
-    time: '00:15:20',
-    class: 'intacta',
-    confidence: 0.985,
-    defectType: 'Conforme',
-    latency: 22.4,
-    bbox: [0.32, 0.20, 0.36, 0.60]
-  })
-
+  // Real-time Detection & Telemetry State (NO MOCK DATA)
+  const [lastPrediction, setLastPrediction] = useState(null)
   const [metrics, setMetrics] = useState({
-    total: 28,
-    passed: 24,
-    rejected: 4
+    total: 0,
+    passed: 0,
+    rejected: 0
   })
-
-  const [recentDetections, setRecentDetections] = useState([
-    {
-      id: 28,
-      time: '00:15:20',
-      class: 'intacta',
-      confidence: 0.985,
-      defectType: 'Conforme',
-      latency: 22.4,
-      bbox: [0.32, 0.20, 0.36, 0.60]
-    },
-    {
-      id: 27,
-      time: '00:14:52',
-      class: 'intacta',
-      confidence: 0.965,
-      defectType: 'Conforme',
-      latency: 21.8,
-      bbox: [0.32, 0.20, 0.36, 0.60]
-    },
-    {
-      id: 26,
-      time: '00:14:15',
-      class: 'dañada',
-      confidence: 0.972,
-      defectType: 'Abolladura Lateral',
-      latency: 24.2,
-      bbox: [0.31, 0.19, 0.37, 0.62]
-    },
-    {
-      id: 25,
-      time: '00:13:38',
-      class: 'intacta',
-      confidence: 0.991,
-      defectType: 'Conforme',
-      latency: 20.9,
-      bbox: [0.32, 0.20, 0.36, 0.60]
-    },
-    {
-      id: 24,
-      time: '00:13:02',
-      class: 'dañada',
-      confidence: 0.948,
-      defectType: 'Golpe en Reborde Superior',
-      latency: 23.5,
-      bbox: [0.31, 0.19, 0.37, 0.62]
-    }
-  ])
-
+  const [recentDetections, setRecentDetections] = useState([])
   const [piTelemetry, setPiTelemetry] = useState({
-    cpuUsage: 36,
-    cpuTemp: 47.8,
-    ramUsage: '1.2 / 4.0 GB',
-    modelEngine: 'ONNX Runtime (ARM64)',
-    modelLatencyMs: 22.4
+    cpuUsage: 0,
+    cpuTemp: 0,
+    ramUsage: '--',
+    modelEngine: 'ONNX Runtime',
+    modelLatencyMs: 0
   })
 
   const wsRef = useRef(null)
-  const scanCounterRef = useRef(29)
+  const reconnectTimeoutRef = useRef(null)
 
   // Save backend URL on change
   const handleSaveBackendUrl = (url) => {
@@ -107,8 +50,9 @@ export default function App() {
     localStorage.setItem('scan_backend_url', cleanUrl)
   }
 
-  // Handle incoming detection event (shared by live WS and simulator)
+  // Handle incoming detection event from real WebSocket
   const processDetection = useCallback((detection) => {
+    if (!detection) return
     setLastPrediction(detection)
 
     const isDefect =
@@ -130,24 +74,17 @@ export default function App() {
       rejected: prev.rejected + (isDefect ? 1 : 0)
     }))
 
-    // Append to audit feed (keep max 30)
-    setRecentDetections((prev) => [detection, ...prev.slice(0, 29)])
+    // Append to history feed (keep up to 50 real entries)
+    setRecentDetections((prev) => [detection, ...prev.slice(0, 49)])
   }, [])
 
-  // 1. Live WebSocket and Health Ping loop when NOT in simulator mode
+  // 1. Live WebSocket and Health Ping loop (Continuous Real Connection)
   useEffect(() => {
-    if (isSimulator) {
-      if (wsRef.current) {
-        wsRef.current.close()
-        wsRef.current = null
-      }
-      return
-    }
-
     let isMounted = true
     const wsUrl = `${backendUrl.replace(/^http/, 'ws')}/ws/telemetry`
 
     const connectWs = () => {
+      if (!isMounted) return
       try {
         setConnectionStatus('reconnecting')
         const ws = new WebSocket(wsUrl)
@@ -162,10 +99,13 @@ export default function App() {
           if (!isMounted) return
           try {
             const data = JSON.parse(event.data)
-            if (data.type === 'detection') {
+            if (data.type === 'detection' && data.payload) {
               processDetection(data.payload)
-            } else if (data.type === 'telemetry') {
-              setPiTelemetry(data.payload)
+            } else if (data.type === 'telemetry' && data.payload) {
+              setPiTelemetry((prev) => ({
+                ...prev,
+                ...data.payload
+              }))
             }
           } catch (e) {
             console.error('Error parsing WebSocket message', e)
@@ -175,6 +115,8 @@ export default function App() {
         ws.onclose = () => {
           if (!isMounted) return
           setConnectionStatus('disconnected')
+          // Auto-reconnect after 3.5 seconds
+          reconnectTimeoutRef.current = setTimeout(connectWs, 3500)
         }
 
         ws.onerror = () => {
@@ -182,7 +124,9 @@ export default function App() {
           setConnectionStatus('disconnected')
         }
       } catch {
+        if (!isMounted) return
         setConnectionStatus('disconnected')
+        reconnectTimeoutRef.current = setTimeout(connectWs, 3500)
       }
     }
 
@@ -196,90 +140,42 @@ export default function App() {
         if (res.ok) {
           const rtt = Math.round(performance.now() - start)
           setPingMs(rtt)
+        } else {
+          setPingMs(null)
         }
       } catch {
-        // Ping failed
+        setPingMs(null)
       }
     }, 4000)
 
     return () => {
       isMounted = false
       clearInterval(pingInterval)
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
       if (wsRef.current) {
         wsRef.current.close()
       }
     }
-  }, [backendUrl, isSimulator, processDetection])
+  }, [backendUrl, processDetection])
 
-  // 2. Background simulation loop (subtle, keeps can scanner alive without clutter)
-  useEffect(() => {
-    if (!isSimulator) return
-
-    const defectTypes = [
-      'Abolladura Lateral',
-      'Golpe en Reborde Superior',
-      'Deformidad por Aplastamiento',
-      'Corrosión / Óxido Superficial'
-    ]
-
-    const interval = setInterval(() => {
-      const nextId = scanCounterRef.current++
-      // 80% pass, 20% defect
-      const isDefect = Math.random() < 0.20
-      const cls = isDefect ? 'dañada' : 'intacta'
-      const confidence = isDefect
-        ? 0.89 + Math.random() * 0.10
-        : 0.95 + Math.random() * 0.048
-
-      const now = new Date()
-      const timeStr = now.toTimeString().split(' ')[0]
-
-      const mockEvent = {
-        id: nextId,
-        time: timeStr,
-        class: cls,
-        confidence: parseFloat(confidence.toFixed(3)),
-        defectType: isDefect
-          ? defectTypes[Math.floor(Math.random() * defectTypes.length)]
-          : 'Conforme',
-        latency: parseFloat((21.5 + Math.random() * 4).toFixed(1)),
-        bbox: isDefect
-          ? [0.31 + Math.random() * 0.03, 0.19, 0.37, 0.62]
-          : [0.32, 0.20, 0.36, 0.60]
+  // Real Manual Trigger Button Handler (communicates with Raspberry Pi)
+  const handleManualTrigger = async () => {
+    setIsTriggering(true)
+    try {
+      // If WebSocket is open, send trigger command
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ action: 'trigger' }))
       }
-
-      processDetection(mockEvent)
-
-      // Randomize Pi stats slightly
-      setPiTelemetry({
-        cpuUsage: Math.floor(34 + Math.random() * 8),
-        cpuTemp: parseFloat((46.8 + Math.random() * 2.5).toFixed(1)),
-        ramUsage: '1.2 / 4.0 GB',
-        modelEngine: 'ONNX Runtime (ARM64)',
-        modelLatencyMs: mockEvent.latency
-      })
-    }, 4800)
-
-    return () => clearInterval(interval)
-  }, [isSimulator, processDetection])
-
-  // Manual Trigger Button Handler
-  const handleManualTrigger = () => {
-    const nextId = scanCounterRef.current++
-    const isDefect = lastPrediction?.class === 'intacta'
-    const now = new Date()
-
-    const manualEvent = {
-      id: nextId,
-      time: now.toTimeString().split(' ')[0],
-      class: isDefect ? 'dañada' : 'intacta',
-      confidence: 0.978,
-      defectType: isDefect ? 'Abolladura de Prueba' : 'Conforme',
-      latency: 22.8,
-      bbox: [0.32, 0.20, 0.36, 0.60]
+      
+      // Also request camera status / trigger endpoint
+      await fetch(`${backendUrl}/camera/status`, { method: 'GET' }).catch(() => {})
+    } catch (e) {
+      console.warn('Trigger dispatch error', e)
+    } finally {
+      setTimeout(() => setIsTriggering(false), 300)
     }
-
-    processDetection(manualEvent)
   }
 
   // Sound toggle
@@ -302,19 +198,19 @@ export default function App() {
       const res = await fetch(`${url}/health`, { method: 'GET' })
       setIsTestingConnection(false)
       if (res.ok) {
-        return { success: true, message: '¡Conexión exitosa con FastAPI backend!' }
+        return { success: true, message: '¡Conexión establecida con la Raspberry Pi!' }
       } else {
         return { success: false, message: `Error HTTP ${res.status}: Servidor no responde OK` }
       }
     } catch {
       setIsTestingConnection(false)
-      return { success: false, message: `No se pudo conectar a ${url}. Revisa la IP.` }
+      return { success: false, message: `No se pudo conectar a ${url}. Verifica IP y puerto.` }
     }
   }
 
   return (
-    <div className="h-screen w-screen max-h-screen overflow-hidden bg-[#080c14] text-slate-100 flex flex-row font-sans selection:bg-cyan-500/20">
-      {/* 1. Collapsible Sidebar (Branding Header, Navigation Menu, Compact Metrics) */}
+    <div className="h-screen w-screen max-h-screen overflow-hidden ambient-bg text-slate-100 flex flex-row font-sans selection:bg-cyan-500/20">
+      {/* 1. Glassmorphic Collapsible Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -324,44 +220,49 @@ export default function App() {
         onResetMetrics={handleResetCounters}
         piTelemetry={piTelemetry}
         connectionStatus={connectionStatus}
-        isSimulator={isSimulator}
+        pingMs={pingMs}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onManualTrigger={handleManualTrigger}
+        isTriggering={isTriggering}
       />
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0 bg-[#070b14]">
-        {/* Simple Navbar with Hamburger ellipse trigger when sidebar is collapsed, metrics, and actions */}
+      <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0">
+        {/* Glassmorphic Top Navbar */}
         <Navbar
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           activeTab={activeTab}
           metrics={metrics}
           connectionStatus={connectionStatus}
-          isSimulator={isSimulator}
-          onToggleSimulator={() => setIsSimulator(!isSimulator)}
+          pingMs={pingMs}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onManualTrigger={handleManualTrigger}
+          isTriggering={isTriggering}
           lastPrediction={lastPrediction}
         />
 
-        {/* View Content (100% viewport, no vertical scroll) */}
-        <main className="flex-1 h-[calc(100vh-3.5rem)] overflow-hidden flex flex-col">
+        {/* View Content (100% viewport, no vertical page overflow) */}
+        <main className="flex-1 h-[calc(100vh-3.5rem)] overflow-hidden flex flex-col p-3 sm:p-4">
           {activeTab === 'camara' && (
             <VideoFeed
               streamUrl={`${backendUrl}/video_feed`}
               isConnected={connectionStatus === 'connected'}
-              isSimulator={isSimulator}
               lastPrediction={lastPrediction}
               modelLatencyMs={piTelemetry.modelLatencyMs}
-              cameraFps={30}
+              recentDetections={recentDetections}
+              onManualTrigger={handleManualTrigger}
+              isTriggering={isTriggering}
             />
           )}
 
           {activeTab === 'history' && (
-            <HistoryView recentDetections={recentDetections} />
+            <HistoryView
+              recentDetections={recentDetections}
+              onResetMetrics={handleResetCounters}
+            />
           )}
 
           {activeTab === 'audit' && (
@@ -370,6 +271,7 @@ export default function App() {
               metrics={metrics}
               connectionStatus={connectionStatus}
               backendUrl={backendUrl}
+              pingMs={pingMs}
             />
           )}
         </main>
