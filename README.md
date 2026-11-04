@@ -24,7 +24,7 @@ S-can/
 
 ## 🚀 Instrucciones de Ejecución
 
-### 1. Backend (Raspberry Pi / Servidor Local)
+### 1. Dashboard API (Raspberry Pi / Servidor Local)
 ```bash
 cd pi_backend
 python -m venv venv
@@ -36,13 +36,35 @@ python -m venv venv
 pip install -r requirements.txt
 python main.py
 ```
-El servidor iniciará por defecto en `http://0.0.0.0:8000`.
+El servidor de dashboard escucha en `0.0.0.0:8000`; abre `http://localhost:8000` desde la laptop.
 
-### 2. Dashboard Web (Laptop)
+### 2. Inspector Edge-AI
+Desde la raíz del repositorio, instala las dependencias y ejecuta el servicio de inspección:
+```bash
+python -m venv .venv
+# En Windows:
+.\.venv\Scripts\activate
+# En Linux / Raspberry Pi OS:
+# source .venv/bin/activate
+
+pip install -r requirements-edge.txt
+python run_inspector.py
+```
+La API del inspector escucha en `0.0.0.0:8080`; abre `http://localhost:8080/docs` desde la laptop.
+El modelo ONNX no se incluye en esta combinación de carpetas; mientras no se instale
+un modelo en `models/active/can_detector.onnx`, el inspector usa su motor de simulación.
+
+### 3. Dashboard Web (Laptop)
 ```bash
 cd web_dashboard
 npm install
 npm run dev
+```
+
+### Pruebas del Inspector
+Desde la raíz del repositorio y con el entorno virtual activado:
+```bash
+pytest
 ```
 
 ---

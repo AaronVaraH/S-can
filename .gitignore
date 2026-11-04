@@ -19,6 +19,12 @@ dist-ssr/
 *.log
 npm-debug.log*
 yarn-debug.log*
+
+# Python test and runtime data
+.pytest_cache/
+data/*.db
+data/inspections/
+data/rag_index.json
 yarn-error.log*
 
 # OS / Editor
@@ -28,5 +34,5 @@ Thumbs.db
 .idea/
 
 # ML weights / large data files (track only small config or download via link)
-# *.onnx
-# *.tflite
+*.onnx
+*.tflite
