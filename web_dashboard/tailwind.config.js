@@ -12,26 +12,34 @@ export default {
         mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
       },
       colors: {
-        dark: {
-          950: '#070b12',
-          900: '#0b111e',
-          850: '#0f1728',
-          800: '#152136',
-          700: '#1e2f4d',
+        brand: {
+          ice: '#E5F0FE',       // Reflejo Óptico Hielo (L=0.861)
+          silver: '#BFC2C4',    // Aluminio Cepillado (L=0.536)
+          sand: '#B7A181',      // Champagne / Oro Arena (L=0.371)
+          brass: '#A88C5D',     // Latón Industrial / Bronce (L=0.279)
+          umber: '#4A4036',     // Café / Carbón Bronceado para resaltar (L=0.054)
+          800: '#181B22',       // Superficie elevada Neutral Dark
+          900: '#111318',       // Panel base Neutral Dark
+          950: '#0B0D10',       // Fondo profundo Neutral Dark
         },
-        accent: {
-          blue: '#3b82f6',
-          cyan: '#0ea5e9',
-          emerald: '#10b981',
-          rose: '#f43f5e',
-          amber: '#f59e0b',
+        skin: {
+          app: 'var(--bg-app)',
+          panel: 'var(--bg-panel)',
+          card: 'var(--bg-card)',
+          elevated: 'var(--bg-elevated)',
+          input: 'var(--bg-input)',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          accent: 'var(--accent-primary)',
+          brass: 'var(--accent-secondary)',
         }
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.36)',
-        'glass-sm': '0 4px 16px 0 rgba(0, 0, 0, 0.25)',
-        'glass-glow': '0 0 24px -4px rgba(14, 165, 233, 0.15)',
-        'inner-specular': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.12)',
+        'glass': '0 8px 32px 0 rgba(18, 16, 14, 0.28)',
+        'glass-sm': '0 4px 16px 0 rgba(18, 16, 14, 0.18)',
+        'glass-glow': '0 0 24px -4px rgba(183, 161, 129, 0.22)',
+        'inner-specular': 'inset 0 1px 1px 0 rgba(229, 240, 254, 0.12)',
       },
       backdropBlur: {
         'xs': '2px',
