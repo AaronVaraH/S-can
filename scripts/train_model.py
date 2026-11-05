@@ -86,7 +86,8 @@ def train_edge_model(
     train_dataset = datasets.ImageFolder(str(train_path), transform=train_transform)
     val_dataset = datasets.ImageFolder(str(val_path), transform=val_transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+    workers = 0 if os.name == "nt" else 2
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=workers)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     classes = train_dataset.classes
