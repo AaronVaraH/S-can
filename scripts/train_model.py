@@ -158,14 +158,25 @@ def train_edge_model(
         model.load_state_dict(best_weights)
     logger.info(f"Training complete. Peak Validation Accuracy: {best_acc:.2%}")
 
-    # 4. Export Directly to Optimized ONNX Format
+    # 4. Save PyTorch checkpoint & Export Directly to Optimized ONNX Format
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    pt_path = out_dir / "can_detector.pt"
     onnx_path = out_dir / "can_detector.onnx"
     manifest_path = out_dir / "manifest.json"
 
     model.eval()
     model = model.to("cpu")
+
+    # Save raw PyTorch checkpoint so trained weights are never lost
+    torch.save({
+        "state_dict": model.state_dict(),
+        "classes": classes,
+        "image_size": image_size,
+        "val_acc": best_acc,
+    }, pt_path)
+    logger.info(f"Saved PyTorch checkpoint to: {pt_path}")
+
     dummy_input = torch.randn(1, 3, image_size, image_size, requires_grad=False)
 
     logger.info(f"Exporting trained model to ONNX: {onnx_path}")

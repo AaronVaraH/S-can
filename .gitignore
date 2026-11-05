@@ -36,3 +36,7 @@ Thumbs.db
 # ML weights / large data files (track only small config or download via link)
 *.onnx
 *.tflite
+*.pt
+*.pth
+models/staging/
+models/archive/
