@@ -3,18 +3,67 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* ==========================================================================
+     LIGHT MODE TOKENS (WCAG 2.1 AA Verified)
+     - #4A4036 (Umber) vs #FFFFFF = 10.11:1 (AAA)
+     - #4A4036 (Umber) vs #E5F0FE (Ice Blue) = 8.77:1 (AAA)
+     - #5C5043 (Secondary) vs #FFFFFF = 7.45:1 (AAA)
+     - #6E6256 (Muted) vs #FFFFFF = 5.74:1 (AA)
+     ========================================================================== */
   :root {
+    --bg-app: #F4F6F9;
+    --bg-sidebar: rgba(255, 255, 255, 0.88);
+    --bg-navbar: rgba(255, 255, 255, 0.82);
+    --bg-panel: rgba(255, 255, 255, 0.86);
+    --bg-card: rgba(229, 240, 254, 0.45);
+    --bg-card-hover: rgba(229, 240, 254, 0.78);
+    --bg-elevated: #EAECEF;
+    --bg-input: #FFFFFF;
+    --border-subtle: rgba(191, 194, 196, 0.65);
+    --border-strong: rgba(168, 140, 93, 0.45);
+    --text-primary: #4A4036;
+    --text-secondary: #5C5043;
+    --text-muted: #6E6256;
+    --accent-primary: #A88C5D;
+    --accent-secondary: #B7A181;
+    color-scheme: light;
+  }
+
+  /* ==========================================================================
+     DARK MODE TOKENS (Neutral Dark Base + Café/Bronce Highlights)
+     - Base Neutral Oscura: #0B0D10 / #111318 / #181B22
+     - Bordes sutiles neutros: rgba(191, 194, 196, 0.09) (#BFC2C4)
+     - Resaltado en Café/Bronce: #4A4036 (Umber), #A88C5D (Brass), #B7A181 (Sand)
+     ========================================================================== */
+  .dark {
+    --bg-app: #0B0D10;
+    --bg-sidebar: rgba(14, 16, 21, 0.88);
+    --bg-navbar: rgba(16, 19, 24, 0.80);
+    --bg-panel: rgba(18, 21, 27, 0.78);
+    --bg-card: rgba(26, 30, 38, 0.65);
+    --bg-card-hover: rgba(74, 64, 54, 0.35);
+    --bg-elevated: #181B22;
+    --bg-input: rgba(11, 13, 16, 0.85);
+    --border-subtle: rgba(191, 194, 196, 0.09);
+    --border-strong: rgba(183, 161, 129, 0.42);
+    --text-primary: #E5F0FE;
+    --text-secondary: #BFC2C4;
+    --text-muted: #7E8590;
+    --accent-primary: #B7A181;
+    --accent-secondary: #A88C5D;
     color-scheme: dark;
   }
 
   body {
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #070b12;
-    color: #f1f5f9;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   /* Monospace figures stay perfectly aligned */
@@ -23,63 +72,110 @@
   }
 }
 
-/* Ambient Radial Mesh for Glass Refraction */
+/* Ambient Radial Mesh for Brand Glass Refraction */
 .ambient-bg {
-  background-color: #070b12;
-  background-image: 
-    radial-gradient(at 15% 15%, rgba(14, 165, 233, 0.07) 0px, transparent 50%),
-    radial-gradient(at 85% 25%, rgba(59, 130, 246, 0.05) 0px, transparent 45%),
-    radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+  background-color: var(--bg-app);
+  background-image:
+    radial-gradient(at 15% 15%, rgba(183, 161, 129, 0.14) 0px, transparent 50%),
+    radial-gradient(at 85% 20%, rgba(229, 240, 254, 0.45) 0px, transparent 48%),
+    radial-gradient(at 50% 90%, rgba(168, 140, 93, 0.10) 0px, transparent 50%);
 }
 
-/* High-Precision Glassmorphism Utility Classes */
+.dark .ambient-bg {
+  background-color: var(--bg-app);
+  background-image:
+  radial-gradient(at 15% 15%, rgba(229, 240, 254, 0.03) 0px, transparent 50%),
+  radial-gradient(at 85% 25%, rgba(183, 161, 129, 0.04) 0px, transparent 45%),
+  radial-gradient(at 50% 90%, rgba(74, 64, 54, 0.08) 0px, transparent 55%);
+}
+
+/* High-Precision Brand Glassmorphism Utility Classes */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 8px 28px -4px rgba(15, 23, 42, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dark .glass-panel {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card {
-  background: rgba(21, 33, 54, 0.55);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.28), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .glass-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card-hover {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .glass-card-hover:hover {
-  background: rgba(28, 44, 72, 0.65);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
+  border-color: var(--border-strong);
 }
 
 .glass-pill {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
 }
 
 .glass-dock {
-  background: rgba(11, 17, 30, 0.72);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--bg-panel);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 16px 48px 0 rgba(18, 16, 14, 0.24);
 }
 
-/* Subtle Technical Calibration Grid */
+.dark .glass-dock {
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Brand Primary CTA Button — Resalta con Café (#4A4036) y acento Dorado (#B7A181) */
+.btn-brand {
+  background-color: #4A4036;
+  color: #E5F0FE;
+  border: 1px solid rgba(183, 161, 129, 0.45);
+  transition: all 0.2s ease;
+}
+
+.btn-brand:hover:not(:disabled) {
+  background-color: #5C4F42;
+  border-color: #B7A181;
+}
+
+.dark .btn-brand {
+  background-color: #4A4036;
+  color: #E5F0FE;
+  border: 1px solid rgba(183, 161, 129, 0.45);
+  box-shadow: 0 2px 12px -2px rgba(74, 64, 54, 0.5);
+}
+
+.dark .btn-brand:hover:not(:disabled) {
+  background-color: #5C4F42;
+  border-color: #B7A181;
+  color: #FFFFFF;
+}
+
+/* Subtle Technical Calibration Grid (Neutral metallic) */
 .optical-grid {
   background-size: 32px 32px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-image:
+  linear-gradient(to right, rgba(191, 194, 196, 0.03) 1px, transparent 1px),
+  linear-gradient(to bottom, rgba(191, 194, 196, 0.03) 1px, transparent 1px);
 }
 
 /* Minimalist Clean Industrial Scrollbar */
@@ -87,13 +183,16 @@
   width: 5px;
   height: 5px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(168, 140, 93, 0.35);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(168, 140, 93, 0.6);
 }

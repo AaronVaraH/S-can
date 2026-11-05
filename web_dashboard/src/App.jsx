@@ -11,6 +11,29 @@ export default function App() {
   // Navigation & Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState('camara') // 'camara' | 'history' | 'audit'
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('scan_theme') || 'dark'
+  })
+
+  // Apply Dark/Light theme class to root <html> element
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    localStorage.setItem('scan_theme', theme)
+
+    const metaTheme = document.querySelector('meta[name="theme-color"]')
+    if (metaTheme) {
+      metaTheme.setAttribute('content', theme === 'dark' ? '#0B0D10' : '#F4F6F9')
+    }
+  }, [theme])
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
 
   // Connection State
   const [backendUrl, setBackendUrl] = useState(() => {
@@ -168,9 +191,9 @@ export default function App() {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ action: 'trigger' }))
       }
-      
+
       // Also request camera status / trigger endpoint
-      await fetch(`${backendUrl}/camera/status`, { method: 'GET' }).catch(() => {})
+      await fetch(`${backendUrl}/camera/status`, { method: 'GET' }).catch(() => { })
     } catch (e) {
       console.warn('Trigger dispatch error', e)
     } finally {
@@ -209,7 +232,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen max-h-screen overflow-hidden ambient-bg text-slate-100 flex flex-row font-sans selection:bg-cyan-500/20">
+    <div className="h-screen w-screen max-h-screen overflow-hidden ambient-bg text-skin-primary flex flex-row font-sans selection:bg-brand-sand/30">
       {/* 1. Glassmorphic Collapsible Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
@@ -238,6 +261,8 @@ export default function App() {
           pingMs={pingMs}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onManualTrigger={handleManualTrigger}
           isTriggering={isTriggering}
