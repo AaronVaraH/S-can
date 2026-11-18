@@ -48,9 +48,9 @@ export default function VideoFeed({
 
   const activeSample = selectedDetection || lastPrediction
   const isDefect =
-    activeSample?.class === 'dañada' ||
-    activeSample?.class === 'abollada' ||
-    activeSample?.class === 'defectuosa'
+    !!activeSample &&
+    activeSample.class !== 'intacta' &&
+    activeSample.class !== 'clean'
 
   return (
     <div className="flex-1 w-full h-full flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden select-none">
@@ -298,9 +298,8 @@ export default function VideoFeed({
                   ) : (
                     recentDetections.map((item) => {
                       const itemIsDefect =
-                        item.class === 'dañada' ||
-                        item.class === 'abollada' ||
-                        item.class === 'defectuosa'
+                        item.class !== 'intacta' &&
+                        item.class !== 'clean'
                       const isSelected = selectedDetection?.id === item.id
 
                       return (

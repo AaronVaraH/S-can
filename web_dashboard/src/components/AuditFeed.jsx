@@ -35,9 +35,8 @@ export default function AuditFeed({ recentDetections = [] }) {
         <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
           {recentDetections.map((item) => {
             const isDefect =
-              item.class === 'dañada' ||
-              item.class === 'abollada' ||
-              item.class === 'defectuosa'
+              item.class !== 'intacta' &&
+              item.class !== 'clean'
 
             return (
               <div

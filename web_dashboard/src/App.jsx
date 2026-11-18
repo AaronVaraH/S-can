@@ -80,9 +80,8 @@ export default function App() {
     setLastPrediction(detection)
 
     const isDefect =
-      detection.class === 'dañada' ||
-      detection.class === 'abollada' ||
-      detection.class === 'defectuosa'
+      detection.class !== 'intacta' &&
+      detection.class !== 'clean'
 
     // Sound feedback
     if (isDefect) {
