@@ -18,18 +18,32 @@ import onnxruntime as ort
 
 # Path to the local neural network weights
 MODEL_PATH = Path("models/active/can_detector.onnx")
+MANIFEST_PATH = Path("models/active/manifest.json")
 SAMPLE_IMAGE = "Metal-Can.jpg"
 
-DEFECT_CLASSES = [
-    "dent",
-    "scratch",
-    "rim_dent",
-    "pinhole",
+DEFAULT_CLASSES = [
+    "clean",
     "contamination",
-    "corrosion",
-    "seam_defect",
-    "ovalization",
+    "dent",
+    "pinhole",
+    "rim_dent",
+    "scratch",
 ]
+
+
+def get_model_classes_and_thresholds() -> tuple[list[str], dict[str, float]]:
+    """Loads classes and thresholds from active manifest if available."""
+    if MANIFEST_PATH.exists():
+        try:
+            import json
+            with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            classes = data.get("classes", DEFAULT_CLASSES)
+            thresholds = data.get("thresholds", {})
+            return classes, thresholds
+        except Exception:
+            pass
+    return DEFAULT_CLASSES, {}
 
 
 def load_local_neurons(model_path: Path) -> ort.InferenceSession:
@@ -107,21 +121,29 @@ def run_local_inspection(image_path: str = SAMPLE_IMAGE) -> None:
     latency_ms = (t_inf_1 - t_inf_0) * 1000
 
     output_tensor = cast(np.ndarray, outputs[0])
-    logits = output_tensor[0]  # Array of 8 class activations
-    # Sigmoid activation on output neurons
-    probabilities = 1.0 / (1.0 + np.exp(-logits))
+    logits = output_tensor[0]
+    # Softmax probabilities over classes
+    exp_logits = np.exp(logits - np.max(logits))
+    probabilities = exp_logits / np.sum(exp_logits) if np.sum(exp_logits) > 0 else logits
+
+    classes, thresholds = get_model_classes_and_thresholds()
 
     print(f"Inference completed locally in: {latency_ms:.2f} ms")
     print("\n" + "-" * 65)
-    print("id,defect_type,confidence,status")
+    print("id,class_name,confidence,status")
     print("-" * 65)
 
     has_defect = False
-    for i, (defect_name, score) in enumerate(zip(DEFECT_CLASSES, probabilities), start=1):
-        status = "FAIL" if score >= 0.70 else ("REVIEW" if score >= 0.35 else "PASS")
-        if status in ("FAIL", "REVIEW"):
-            has_defect = True
-        print(f"{i},{defect_name},{score:.4f},{status}")
+    for i, (class_name, score) in enumerate(zip(classes, probabilities), start=1):
+        fail_thresh = thresholds.get(class_name, 0.70)
+        review_thresh = fail_thresh * 0.5
+        if class_name.lower() == "clean":
+            status = "PASS" if score >= 0.50 else "REVIEW"
+        else:
+            status = "FAIL" if score >= fail_thresh else ("REVIEW" if score >= review_thresh else "PASS")
+            if status in ("FAIL", "REVIEW"):
+                has_defect = True
+        print(f"{i},{class_name},{score:.4f},{status}")
 
     print("-" * 65)
     overall = "FAIL (REJECT CAN)" if has_defect else "PASS (ACCEPT CAN)"
