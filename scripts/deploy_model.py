@@ -10,6 +10,9 @@ import shutil
 import sys
 import time
 from pathlib import Path
+from typing import Any, Dict
+
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -88,12 +91,18 @@ def deploy_model(
         arch_sub.mkdir(parents=True, exist_ok=True)
 
         shutil.copy2(active_model, arch_sub / "can_detector.onnx")
+        active_model_data = active_dir / f"{active_model.name}.data"
+        if active_model_data.exists():
+            shutil.copy2(active_model_data, arch_sub / active_model_data.name)
         shutil.copy2(active_manifest, arch_sub / "manifest.json")
         logger.info(f"Archived previous version v{curr_ver} to: {arch_sub}")
 
     # 5. Copy new artifact to active
     active_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(model_src, active_dir / "can_detector.onnx")
+    model_src_data = model_src.parent / f"{model_src.name}.data"
+    if model_src_data.exists():
+        shutil.copy2(model_src_data, active_dir / model_src_data.name)
     shutil.copy2(manifest_src, active_dir / "manifest.json")
     logger.info("Promoted new model to active production directory.")
 
@@ -125,8 +134,6 @@ def deploy_model(
 
 
 if __name__ == "__main__":
-    import numpy as np
-
     parser = argparse.ArgumentParser(description="Edge Model Deployment Utility")
     parser.add_argument("--model", required=True, help="Path to staged model artifact (.onnx)")
     parser.add_argument("--manifest", required=True, help="Path to staged model manifest (.json)")

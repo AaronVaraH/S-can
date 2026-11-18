@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 
@@ -18,12 +18,16 @@ from edge_inspector.inference.base import (
 from edge_inspector.quality import unletterbox_bbox
 
 # Optional import of onnxruntime
-_ORT_AVAILABLE = False
-try:
-    import onnxruntime as ort  # type: ignore
+if TYPE_CHECKING:
+    import onnxruntime as ort
     _ORT_AVAILABLE = True
-except ImportError:
-    ort = None  # type: ignore
+else:
+    try:
+        import onnxruntime as ort
+        _ORT_AVAILABLE = True
+    except ImportError:
+        ort = None
+        _ORT_AVAILABLE = False
 
 
 class ONNXInferenceEngine(BaseInferenceEngine):
@@ -45,7 +49,7 @@ class ONNXInferenceEngine(BaseInferenceEngine):
         self.output_names: List[str] = []
 
     def load_model(self, model_path: str, manifest: Optional[ModelManifest] = None) -> bool:
-        if not _ORT_AVAILABLE:
+        if not _ORT_AVAILABLE or ort is None:
             raise RuntimeError("onnxruntime is not installed. CPU inference cannot proceed.")
 
         p = Path(model_path)
@@ -101,7 +105,7 @@ class ONNXInferenceEngine(BaseInferenceEngine):
         latency_ms = (t1 - t0) / 1_000_000.0
 
         predictions: List[DefectPrediction] = []
-        primary_output = raw_outputs[0]
+        primary_output = cast(np.ndarray, raw_outputs[0])
 
         classes = self.manifest.classes if self.manifest else [
             "dent", "scratch", "rim_dent", "pinhole", "contamination", "corrosion", "seam_defect", "ovalization"

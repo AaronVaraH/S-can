@@ -18,7 +18,7 @@ from edge_inspector.inference.base import (
 from edge_inspector.quality import unletterbox_bbox
 
 _TFLITE_AVAILABLE = False
-_INTERPRETER = None
+_INTERPRETER: Any = None
 
 try:
     import tflite_runtime.interpreter as tflite  # type: ignore

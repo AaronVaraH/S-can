@@ -10,6 +10,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import cast
 
 import cv2
 import numpy as np
@@ -105,7 +106,8 @@ def run_local_inspection(image_path: str = SAMPLE_IMAGE) -> None:
     t_inf_1 = time.perf_counter()
     latency_ms = (t_inf_1 - t_inf_0) * 1000
 
-    logits = outputs[0][0]  # Array of 8 class activations
+    output_tensor = cast(np.ndarray, outputs[0])
+    logits = output_tensor[0]  # Array of 8 class activations
     # Sigmoid activation on output neurons
     probabilities = 1.0 / (1.0 + np.exp(-logits))
 

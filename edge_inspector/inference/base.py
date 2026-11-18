@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from abc import ABC, abstractmethod
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -67,6 +67,7 @@ class ModelManifest:
     quantization: str = "FP32"  # "FP32", "FP16", "INT8"
     target_hardware: str = "generic_edge"
     benchmarked_latency_ms: Optional[float] = None
+    benchmarked_val_acc: Optional[float] = None
     created_at: str = "2026-10-21T00:00:00Z"
 
     def to_dict(self) -> Dict[str, Any]:
@@ -77,7 +78,9 @@ class ModelManifest:
         p = Path(path)
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return cls(**data)
+        valid_fields = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered)
 
     def save(self, path: str) -> None:
         p = Path(path)
