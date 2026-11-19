@@ -5,7 +5,6 @@ import {
   Volume2,
   VolumeX,
   Sliders,
-  Radio,
   Sun,
   Moon
 } from 'lucide-react'
@@ -20,10 +19,7 @@ export default function Navbar({
   onToggleSound,
   theme = 'dark',
   onToggleTheme,
-  onOpenSettings,
-  onManualTrigger,
-  isTriggering,
-  lastPrediction
+  onOpenSettings
 }) {
   const getTabLabel = () => {
     switch (activeTab) {
@@ -91,37 +87,6 @@ export default function Navbar({
 
       {/* Right: Actions, Theme Switch, and Status */}
       <div className="flex items-center space-x-2">
-        {/* Dynamic Last Detection Pill (if any) */}
-        {lastPrediction && (
-          <div
-            className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono border transition-all ${lastPrediction.class === 'intacta'
-                ? 'border-emerald-600/30 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-950/40'
-                : 'border-rose-600/30 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 bg-rose-500/10 dark:bg-rose-950/40'
-              }`}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${lastPrediction.class === 'intacta'
-                  ? 'bg-emerald-600 dark:bg-emerald-400'
-                  : 'bg-rose-600 dark:bg-rose-400'
-                }`}
-            />
-            <span className="font-semibold uppercase">{lastPrediction.class}</span>
-            <span className="opacity-60">·</span>
-            <span>{(lastPrediction.confidence * 100).toFixed(1)}%</span>
-          </div>
-        )}
-
-        {/* Trigger Capture Button (WCAG AAA Brand CTA) */}
-        <button
-          onClick={onManualTrigger}
-          disabled={isTriggering || connectionStatus !== 'connected'}
-          title="Disparar captura óptica manual"
-          className="btn-brand px-3 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-        >
-          <Radio className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">Disparar Captura</span>
-        </button>
-
         {/* Theme Switch (Light / Dark Mode) */}
         <button
           onClick={onToggleTheme}

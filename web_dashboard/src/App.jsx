@@ -46,7 +46,6 @@ export default function App() {
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.75)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isTestingConnection, setIsTestingConnection] = useState(false)
-  const [isTriggering, setIsTriggering] = useState(false)
 
   // Real-time Detection & Telemetry State (NO MOCK DATA)
   const [lastPrediction, setLastPrediction] = useState(null)
@@ -183,24 +182,6 @@ export default function App() {
     }
   }, [backendUrl, processDetection])
 
-  // Real Manual Trigger Button Handler (communicates with Raspberry Pi)
-  const handleManualTrigger = async () => {
-    setIsTriggering(true)
-    try {
-      // If WebSocket is open, send trigger command
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ action: 'trigger' }))
-      }
-
-      // Also request camera status / trigger endpoint
-      await fetch(`${backendUrl}/camera/status`, { method: 'GET' }).catch(() => { })
-    } catch (e) {
-      console.warn('Trigger dispatch error', e)
-    } finally {
-      setTimeout(() => setIsTriggering(false), 300)
-    }
-  }
-
   // Sound toggle
   const handleToggleSound = () => {
     const enabled = soundFx.toggle()
@@ -253,8 +234,6 @@ export default function App() {
         connectionStatus={connectionStatus}
         pingMs={pingMs}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onManualTrigger={handleManualTrigger}
-        isTriggering={isTriggering}
       />
 
       {/* 2. Main Content Area */}
@@ -272,9 +251,6 @@ export default function App() {
           theme={theme}
           onToggleTheme={handleToggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onManualTrigger={handleManualTrigger}
-          isTriggering={isTriggering}
-          lastPrediction={lastPrediction}
         />
 
         {/* View Content (100% viewport, no vertical page overflow) */}
@@ -286,8 +262,6 @@ export default function App() {
               lastPrediction={lastPrediction}
               modelLatencyMs={piTelemetry.modelLatencyMs}
               recentDetections={recentDetections}
-              onManualTrigger={handleManualTrigger}
-              isTriggering={isTriggering}
             />
           )}
 

@@ -9,8 +9,7 @@ import {
   Percent,
   RotateCcw,
   Sliders,
-  Cpu,
-  Radio
+  Cpu
 } from 'lucide-react'
 
 export default function Sidebar({
@@ -23,9 +22,7 @@ export default function Sidebar({
   piTelemetry = {},
   connectionStatus,
   pingMs,
-  onOpenSettings,
-  onManualTrigger,
-  isTriggering
+  onOpenSettings
 }) {
   const defectRate = metrics.total > 0 ? ((metrics.rejected / metrics.total) * 100).toFixed(1) : '0.0'
   const passRate = metrics.total > 0 ? ((metrics.passed / metrics.total) * 100).toFixed(1) : '100.0'
@@ -226,28 +223,9 @@ export default function Sidebar({
             <span>Latencia: {piTelemetry.modelLatencyMs > 0 ? `${piTelemetry.modelLatencyMs}ms` : '--'}</span>
           </div>
         </div>
-
-        {/* Manual Trigger Action (WCAG AAA Brand CTA) */}
-        <button
-          onClick={onManualTrigger}
-          disabled={isTriggering || connectionStatus !== 'connected'}
-          className="btn-brand w-full py-2.5 px-3 rounded-xl text-xs font-mono font-semibold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-        >
-          <Radio className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin' : ''}`} />
-          <span>{isTriggering ? 'Procesando...' : 'Disparar Captura'}</span>
-        </button>
       </div>
     ) : (
-      <div className="flex-1 p-2 flex flex-col items-center justify-start pt-3 space-y-3">
-        <button
-          onClick={onManualTrigger}
-          disabled={isTriggering || connectionStatus !== 'connected'}
-          title="Disparar Captura"
-          className="btn-brand w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-        >
-          <Radio className={`w-4 h-4 ${isTriggering ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
+      <div className="flex-1" />
     )
   }
 

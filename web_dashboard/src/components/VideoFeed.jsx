@@ -9,7 +9,6 @@ import {
   Zap,
   Activity,
   Camera,
-  Radio,
   ChevronRight,
   Eye,
   CheckCircle2,
@@ -22,9 +21,7 @@ export default function VideoFeed({
   isConnected,
   lastPrediction,
   modelLatencyMs = 0,
-  recentDetections = [],
-  onManualTrigger,
-  isTriggering = false
+  recentDetections = []
 }) {
   const [showBbox, setShowBbox] = useState(true)
   const [streamError, setStreamError] = useState(false)
@@ -267,16 +264,6 @@ export default function VideoFeed({
                     </div>
                   </div>
                 )}
-
-                {/* Trigger Action in Panel */}
-                <button
-                  onClick={onManualTrigger}
-                  disabled={isTriggering || !isConnected}
-                  className="btn-brand w-full py-2 px-3 rounded-xl text-xs font-mono font-semibold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 shadow-sm"
-                >
-                  <Radio className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin' : ''}`} />
-                  <span>{isTriggering ? 'Procesando...' : 'Capturar Muestra'}</span>
-                </button>
               </div>
 
               {/* Filmstrip de Auditoría Rápida (Recent Cans in Current Session) */}
