@@ -15,6 +15,8 @@ from pathlib import Path
 CLASS_RENAME_MAP = {
     "no_defect": "clean",
     "fotos lata no dañada": "clean",
+    "fotos lata no daada": "clean",
+    "clean": "clean",
 }
 
 
@@ -70,6 +72,14 @@ def split_dataset(
         cat_val_dir = val_dest / class_name
         cat_train_dir.mkdir(parents=True, exist_ok=True)
         cat_val_dir.mkdir(parents=True, exist_ok=True)
+
+        # Clear existing images in target class directories to avoid train/val leakage
+        for f in cat_train_dir.iterdir():
+            if f.is_file() and f.suffix.lower() in {".jpg", ".jpeg", ".png"}:
+                f.unlink()
+        for f in cat_val_dir.iterdir():
+            if f.is_file() and f.suffix.lower() in {".jpg", ".jpeg", ".png"}:
+                f.unlink()
 
         for img in train_images:
             shutil.copy2(img, cat_train_dir / img.name)
