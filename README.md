@@ -4,7 +4,7 @@ Sistema inteligente de escaneo y clasificación en tiempo real usando Raspberry 
 
 ---
 
-## 📁 Estructura del Repositorio
+## Estructura del Repositorio
 
 ```text
 S-can/
@@ -22,7 +22,7 @@ S-can/
 
 ---
 
-## 🚀 Instrucciones de Ejecución
+## Instrucciones de Ejecución
 
 ### 1. Dashboard API (Raspberry Pi / Servidor Local)
 ```bash
@@ -69,7 +69,7 @@ pytest
 
 ---
 
-## 👥 Roles del Equipo
+## Roles del Equipo
 
 - **Data Lead**: Módulo `dataset_tools/` (captura, preprocesamiento y estructuración de datos).
 - **Model Lead**: Módulo `ml_training/` (entrenamiento, exportación a `.onnx`/`.tflite` y métricas de convergencia).
@@ -78,11 +78,11 @@ pytest
 
 ---
 
-## 📝 Bitácora Semanal (Contribution Log)
+## Bitácora Semanal (Contribution Log)
 
 | Semana | Fecha | Integrante | Rol | Actividades Realizadas | Evidencias / Commits |
 |---|---|---|---|---|---|
-| Sem. 1 | DD/MM/AAAA | - | - | Configuración inicial del repositorio y arquitectura base | - |
-| Sem. 2 | DD/MM/AAAA | - | - | - | - |
-| Sem. 3 | DD/MM/AAAA | - | - | - | - |
-| Sem. 4 | DD/MM/AAAA | - | - | - | - |
+| Sem. 1 | 21–27/10/2026 | Aaron | Pi & Tools Lead | Inicialización del repositorio, arquitectura base del backend y dashboard, y primera versión visual de la interfaz. | `e7ef533`, `5003276`, `3bef05b` |
+| Sem. 2 | 28/10–03/11/2026 | Aaron; Ana| Pi & Tools Lead | Incorporación de imágenes, logo, favicons y ajustes de navegación y presentación del dashboard. | `5f12509` |
+| Sem. 3 | 04–10/11/2026 | Max; Aaron | Model Lead; Pi & Tools Lead | Integración de módulos de datos, entrenamiento y despliegue del modelo edge v1.1.0 con exportación ONNX; mejoras de paleta y sidebar. | `73d9efa`, `0e2f3a6`, `6116e57`, `cc40b71` |
+| Sem. 4 | 11–18/11/2026 | Max; karimeli; Aaron | Model Lead; Pi & Tools Lead | Integración de inferencia ONNX y detección de defectos en backend/dashboard; autodetección de cámara y corrección del stream MJPEG; normalización de URLs, configuración de pruebas, correcciones de estabilización y limpieza de controles demo. | `e16f195`, `249dfb6`, `228aab5`, `aa72009`, `453e164`, `bfe697e`, `879e594`, `fb4a01e`, `585597b` |
