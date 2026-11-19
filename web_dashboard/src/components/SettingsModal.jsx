@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Server
 } from 'lucide-react'
+import { normalizeBackendUrl } from '../utils/url'
 
 export default function SettingsModal({
   isOpen,
@@ -27,12 +28,15 @@ export default function SettingsModal({
 
   const handleTest = async () => {
     setTestResult(null)
-    const result = await onTestConnection(localUrl)
+    const formatted = normalizeBackendUrl(localUrl)
+    setLocalUrl(formatted)
+    const result = await onTestConnection(formatted)
     setTestResult(result)
   }
 
   const handleSave = () => {
-    onSaveBackendUrl(localUrl)
+    const formatted = normalizeBackendUrl(localUrl)
+    onSaveBackendUrl(formatted)
     onSaveThreshold(localThreshold)
     onClose()
   }

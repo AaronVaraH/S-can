@@ -1,0 +1,85 @@
+# Hardware profiles and resource limits for Raspberry Pi models and edge targets
+profiles:
+  rpi_5:
+    name: "Raspberry Pi 5"
+    cpu_architecture: "aarch64"
+    cores: 4
+    cpu_model: "Broadcom BCM2712 Quad-Core Cortex-A76"
+    typical_clock_ghz: 2.4
+    ram_options_mb: [2048, 4096, 8192, 16384]
+    max_model_ram_mb: 1024
+    recommended_threads: 4
+    supported_accelerators: ["hailo8", "hailo8l", "coral_edgetpu"]
+    target_inference_fps: 25.0
+    max_acceptable_latency_ms: 60.0
+    thermal_throttle_temp_c: 82.0
+
+  rpi_4b:
+    name: "Raspberry Pi 4 Model B"
+    cpu_architecture: "aarch64"
+    cores: 4
+    cpu_model: "Broadcom BCM2711 Quad-Core Cortex-A72"
+    typical_clock_ghz: 1.5
+    ram_options_mb: [1024, 2048, 4096, 8192]
+    max_model_ram_mb: 512
+    recommended_threads: 4
+    supported_accelerators: ["coral_edgetpu", "ncs2"]
+    target_inference_fps: 10.0
+    max_acceptable_latency_ms: 120.0
+    thermal_throttle_temp_c: 80.0
+
+  rpi_cm4:
+    name: "Raspberry Pi Compute Module 4"
+    cpu_architecture: "aarch64"
+    cores: 4
+    cpu_model: "Broadcom BCM2711 Quad-Core Cortex-A72"
+    typical_clock_ghz: 1.5
+    ram_options_mb: [1024, 2048, 4096, 8192]
+    max_model_ram_mb: 512
+    recommended_threads: 4
+    supported_accelerators: ["coral_edgetpu", "hailo8_pcie", "ncs2"]
+    target_inference_fps: 12.0
+    max_acceptable_latency_ms: 100.0
+    thermal_throttle_temp_c: 80.0
+
+  rpi_3b_plus:
+    name: "Raspberry Pi 3 Model B+"
+    cpu_architecture: "armv7l"
+    cores: 4
+    cpu_model: "Broadcom BCM2837B0 Quad-Core Cortex-A53"
+    typical_clock_ghz: 1.4
+    ram_options_mb: [1024]
+    max_model_ram_mb: 256
+    recommended_threads: 3
+    supported_accelerators: ["coral_edgetpu_usb"]
+    target_inference_fps: 4.0
+    max_acceptable_latency_ms: 250.0
+    thermal_throttle_temp_c: 75.0
+
+  rpi_zero_2w:
+    name: "Raspberry Pi Zero 2 W"
+    cpu_architecture: "aarch64"
+    cores: 4
+    cpu_model: "Broadcom BCM2710A1 Quad-Core Cortex-A53"
+    typical_clock_ghz: 1.0
+    ram_options_mb: [512]
+    max_model_ram_mb: 128
+    recommended_threads: 2
+    supported_accelerators: []
+    target_inference_fps: 2.0
+    max_acceptable_latency_ms: 450.0
+    thermal_throttle_temp_c: 75.0
+
+  generic_fallback:
+    name: "Generic Edge Linux / CPU Fallback"
+    cpu_architecture: "unknown"
+    cores: 2
+    cpu_model: "Generic CPU"
+    typical_clock_ghz: 1.0
+    ram_options_mb: [1024]
+    max_model_ram_mb: 256
+    recommended_threads: 2
+    supported_accelerators: []
+    target_inference_fps: 5.0
+    max_acceptable_latency_ms: 200.0
+    thermal_throttle_temp_c: 80.0

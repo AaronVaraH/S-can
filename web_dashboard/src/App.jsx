@@ -6,6 +6,7 @@ import HistoryView from './components/HistoryView'
 import AuditView from './components/AuditView'
 import SettingsModal from './components/SettingsModal'
 import { soundFx } from './utils/audio'
+import { normalizeBackendUrl } from './utils/url'
 
 export default function App() {
   // Navigation & Layout State
@@ -37,7 +38,7 @@ export default function App() {
 
   // Connection State
   const [backendUrl, setBackendUrl] = useState(() => {
-    return localStorage.getItem('scan_backend_url') || 'http://localhost:8000'
+    return normalizeBackendUrl(localStorage.getItem('scan_backend_url') || 'http://localhost:8000')
   })
   const [connectionStatus, setConnectionStatus] = useState('disconnected') // 'connected' | 'reconnecting' | 'disconnected'
   const [pingMs, setPingMs] = useState(null)
@@ -68,7 +69,7 @@ export default function App() {
 
   // Save backend URL on change
   const handleSaveBackendUrl = (url) => {
-    const cleanUrl = url.trim().replace(/\/+$/, '')
+    const cleanUrl = normalizeBackendUrl(url)
     setBackendUrl(cleanUrl)
     localStorage.setItem('scan_backend_url', cleanUrl)
   }
@@ -79,9 +80,8 @@ export default function App() {
     setLastPrediction(detection)
 
     const isDefect =
-      detection.class === 'dañada' ||
-      detection.class === 'abollada' ||
-      detection.class === 'defectuosa'
+      detection.class !== 'intacta' &&
+      detection.class !== 'clean'
 
     // Sound feedback
     if (isDefect) {
@@ -217,17 +217,25 @@ export default function App() {
   // Ping test for Settings modal
   const handleTestConnection = async (url) => {
     setIsTestingConnection(true)
+    const targetUrl = normalizeBackendUrl(url)
     try {
-      const res = await fetch(`${url}/health`, { method: 'GET' })
+      const res = await fetch(`${targetUrl}/health`, { method: 'GET' })
       setIsTestingConnection(false)
       if (res.ok) {
-        return { success: true, message: '¡Conexión establecida con la Raspberry Pi!' }
+        const contentType = res.headers.get('content-type') || ''
+        if (contentType.includes('application/json')) {
+          const data = await res.json()
+          if (data && (data.status === 'ok' || data.service)) {
+            return { success: true, message: `¡Conexión establecida con la Raspberry Pi en ${targetUrl}!` }
+          }
+        }
+        return { success: true, message: `¡Respuesta recibida desde ${targetUrl}!` }
       } else {
         return { success: false, message: `Error HTTP ${res.status}: Servidor no responde OK` }
       }
     } catch {
       setIsTestingConnection(false)
-      return { success: false, message: `No se pudo conectar a ${url}. Verifica IP y puerto.` }
+      return { success: false, message: `No se pudo conectar a ${targetUrl}. Verifica IP y que el backend esté corriendo en el puerto 8000.` }
     }
   }
 

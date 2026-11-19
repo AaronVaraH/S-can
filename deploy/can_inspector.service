@@ -1,0 +1,45 @@
+[Unit]
+Description=Raspberry Pi Industrial Can-Defect Edge Inspector Daemon
+Documentation=https://github.com/industrial-edge/robert_ai
+After=network.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=edgeai
+Group=edgeai
+WorkingDirectory=/opt/robert_ai
+Environment=PYTHONUNBUFFERED=1
+Environment=OMP_NUM_THREADS=4
+Environment=OPENBLAS_NUM_THREADS=4
+
+# Process execution
+ExecStart=/opt/robert_ai/venv/bin/python /opt/robert_ai/run_inspector.py --config config/config.default.yaml
+
+# Systemd Watchdog Integration (30-second deadline)
+WatchdogSec=30s
+
+# Fail-safe restart policy
+Restart=always
+RestartSec=3s
+
+# Resource quotas to protect Raspberry Pi stability
+MemoryAccounting=true
+MemoryHigh=600M
+MemoryMax=750M
+CPUWeight=100
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=20
+
+# Sandboxing and capabilities
+ProtectSystem=full
+ProtectHome=read-only
+DevicePolicy=auto
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=can_inspector
+
+[Install]
+WantedBy=multi-user.target

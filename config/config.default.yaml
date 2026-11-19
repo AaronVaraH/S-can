@@ -1,0 +1,131 @@
+# Edge-AI Industrial Can-Defect Inspection Configuration
+system:
+  device_id: "edge-can-inspector-01"
+  line_id: "line-alpha"
+  facility: "Plant-1"
+  log_level: "INFO"
+  hardware_override: null  # e.g. "rpi_5", "rpi_4b", or null for auto-detect
+
+camera:
+  adapter: "synthetic"  # Options: "synthetic", "usb", "picamera2", "industrial"
+  device_index: 0
+  width: 640
+  height: 480
+  fps: 30
+  pixel_format: "RGB"  # "RGB", "BGR", "GRAY"
+  auto_exposure: false
+  exposure_time_us: 5000  # 5ms shutter speed to avoid motion blur on conveyor
+  gain_db: 6.0
+  auto_white_balance: false
+  reconnect_interval_sec: 2.0
+  max_reconnect_attempts: 10
+  synthetic_image_folder: "data/sample_cans"
+  synthetic_jitter_ms: 15.0
+
+quality_gate:
+  enabled: true
+  min_width: 320
+  min_height: 320
+  blur_laplacian_threshold: 65.0  # Images below this variance are marked BLURRY
+  min_mean_brightness: 35.0       # Below this is underexposed / dark
+  max_mean_brightness: 235.0      # Above this is washed out / overexposed
+  max_glare_pixel_ratio: 0.12     # Saturated specular reflection limit for shiny metal
+  can_presence_threshold: 0.15    # Require minimum foreground contrast to ensure can is present
+
+inference:
+  backend: "onnx"  # Options: "onnx", "tflite", "simulation"
+  active_model_path: "models/active/can_detector.onnx"
+  manifest_path: "models/active/manifest.json"
+  input_width: 320
+  input_height: 320
+  input_channels: 3
+  normalize_mean: [0.485, 0.456, 0.406]
+  normalize_std: [0.229, 0.224, 0.225]
+  intra_threads: 4
+  inter_threads: 1
+  enable_arm_neon: true
+  execution_provider: "CPUExecutionProvider"  # CPUExecutionProvider, HailoExecutionProvider, OpenVINO
+  timeout_ms: 120.0  # Max acceptable inference deadline
+
+decision:
+  default_pass_threshold: 0.35      # Defects with score < 0.35 are PASS (if no other defect)
+  default_fail_threshold: 0.70      # Defects with score >= 0.70 are FAIL (Reject)
+  # Scores between 0.35 and 0.70 enter REVIEW state (manual line inspection)
+  defect_criticality:
+    seam_defect:
+      fail_threshold: 0.50
+      critical: true
+    pinhole:
+      fail_threshold: 0.45
+      critical: true
+    dent:
+      fail_threshold: 0.70
+      critical: false
+    rim_dent:
+      fail_threshold: 0.65
+      critical: true
+    scratch:
+      fail_threshold: 0.75
+      critical: false
+    contamination:
+      fail_threshold: 0.65
+      critical: false
+    corrosion:
+      fail_threshold: 0.60
+      critical: true
+    ovalization:
+      fail_threshold: 0.65
+      critical: true
+
+actuator:
+  adapter: "simulation"  # Options: "simulation", "gpio", "modbus_plc"
+  gpio_pin: 17           # BCM GPIO pin for pneumatic reject valve solenoid
+  active_high: true
+  pulse_duration_ms: 45  # Solenoid blast duration (milliseconds)
+  conveyor_delay_ms: 180 # Time for can to travel from camera to blow-off station
+  deadline_tolerance_ms: 30 # Drop reject actuation if processing exceeded deadline
+  modbus_host: "192.168.1.100"
+  modbus_port: 502
+  modbus_coil_address: 1
+
+storage:
+  db_path: "data/inspection.db"
+  image_dir: "data/inspections"
+  save_annotated_images: true
+  save_pass_images: false       # Don't waste Pi SD card space on passes
+  save_fail_images: true
+  save_review_images: true
+  max_disk_usage_percent: 85.0  # Trigger automatic pruning when partition reaches 85%
+  retention_days_fail: 30
+  retention_days_review: 60
+
+pipeline:
+  queue_max_size: 10
+  worker_concurrency: 1
+  overload_policy: "DROP_OLDEST"  # "DROP_OLDEST", "REJECT_NEW", "SAFE_STOP"
+  memory_guard_limit_mb: 450.0
+
+watchdog:
+  enabled: true
+  heartbeat_interval_sec: 1.0
+  thermal_warning_temp_c: 78.0
+  thermal_critical_temp_c: 84.0
+  max_memory_percent: 85.0
+  emergency_failsafe_state: "SAFE_REJECT_ALL" # "SAFE_REJECT_ALL" or "SAFE_PASS_ALARM"
+
+rag:
+  enabled: true
+  documents_dir: "edge_inspector/rag/documents"
+  index_path: "data/rag_index.json"
+  embedding_backend: "compact_bm25_semantic" # Lightweight BM25 + keyword semantic
+  top_k_passages: 3
+  enable_llm_generation: false  # If false, returns extracted passages + citations without LLM
+  llm_provider: "offline"       # "offline", "gemini", "ollama", "openai"
+  remote_api_key_env: "GEMINI_API_KEY"
+  max_query_concurrency: 1      # Limit RAG compute to avoid interrupting vision pipeline
+  cpu_nice_priority: 15         # Lower CPU priority than inspection thread
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 1

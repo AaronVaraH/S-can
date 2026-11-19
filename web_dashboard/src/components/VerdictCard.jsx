@@ -12,9 +12,9 @@ import {
 
 export default function VerdictCard({ lastPrediction }) {
   const isDefect =
-    lastPrediction?.class === 'dañada' ||
-    lastPrediction?.class === 'abollada' ||
-    lastPrediction?.class === 'defectuosa'
+    !!lastPrediction &&
+    lastPrediction.class !== 'intacta' &&
+    lastPrediction.class !== 'clean'
 
   const hasPrediction = !!lastPrediction
 

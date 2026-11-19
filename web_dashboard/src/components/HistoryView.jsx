@@ -16,7 +16,7 @@ export default function HistoryView({ recentDetections = [], onResetMetrics }) {
 
   const filteredDetections = recentDetections.filter((item) => {
     const isDefect =
-      item.class === 'dañada' || item.class === 'abollada' || item.class === 'defectuosa'
+      item.class !== 'intacta' && item.class !== 'clean'
 
     if (filter === 'passed' && isDefect) return false
     if (filter === 'rejected' && !isDefect) return false
@@ -163,9 +163,8 @@ export default function HistoryView({ recentDetections = [], onResetMetrics }) {
               ) : (
                 filteredDetections.map((item) => {
                   const isDefect =
-                    item.class === 'dañada' ||
-                    item.class === 'abollada' ||
-                    item.class === 'defectuosa'
+                    item.class !== 'intacta' &&
+                    item.class !== 'clean'
 
                   return (
                     <div
